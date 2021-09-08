@@ -1,56 +1,67 @@
-import React, { useState } from "react";
+import React, { useState, Fragment, useRef } from "react";
+
 import Card from "../UI/Card";
-import Classes from "./AddUser.module.css";
 import Button from "../UI/Button";
 import ErrorModal from "../UI/ErrorModal";
+import classes from "./AddUser.module.css";
 
 const AddUser = (props) => {
-  const [enteredUserName, setEnteredUserName] = useState("");
-  const [enteredAge, setEnteredAge] = useState("");
+  const nameInputRef = useRef();
+  const ageInputeRef = useRef();
 
-  const UserNameChangeHandler = (event) => {
-    setEnteredUserName(event.target.value);
-  };
-  const AgeChangeHandler = (event) => {
-    setEnteredAge(event.target.value);
-  };
+  const [error, setError] = useState();
 
-  const AddUserHandler = (event) => {
-    if (enteredUserName.trim().length === 0 || enteredAge.trim().length === 0) {
-      return;
-    }
-    if (+enteredAge < 1) {
-      return;
-    }
+  const addUserHandler = (event) => {
+    const entereduserName = nameInputRef.current.value;
+    const enteredUserAge = ageInputeRef.current.value;
     event.preventDefault();
-    props.onAddUser(enteredUserName, enteredAge);
-    setEnteredAge("");
-    setEnteredUserName("");
+    if (
+      entereduserName.trim().length === 0 ||
+      enteredUserAge.trim().length === 0
+    ) {
+      setError({
+        title: "Invalid input",
+        message: "Please enter a valid name and age (non-empty values).",
+      });
+      return;
+    }
+    if (+enteredUserAge < 1) {
+      setError({
+        title: "Invalid age",
+        message: "Please enter a valid age (> 0).",
+      });
+      return;
+    }
+    props.onAddUser(entereduserName, enteredUserAge);
+
+    nameInputRef.current.value = "";
+    ageInputeRef.current.value = "";
+  };
+
+  const errorHandler = () => {
+    setError(null);
   };
 
   return (
-    <div>
-      {/* <ErrorModal title="an error ocured" message="Something went wrong" /> */}
-      <Card ClassName={Classes.input}>
-        <form onSubmit={AddUserHandler}>
+    <Fragment>
+      {error && (
+        <ErrorModal
+          title={error.title}
+          message={error.message}
+          onConfirm={errorHandler}
+        />
+      )}
+      <Card className={classes.input}>
+        <form onSubmit={addUserHandler}>
           <label htmlFor="username">Username</label>
-          <input
-            id="username"
-            type="text"
-            value={enteredUserName}
-            onChange={UserNameChangeHandler}
-          />
-          <label htmlFor="age">Age(Years)</label>
-          <input
-            id="age"
-            type="number"
-            value={enteredAge}
-            onChange={AgeChangeHandler}
-          />
+          <input id="username" type="text" ref={nameInputRef} />
+          <label htmlFor="age">Age (Years)</label>
+          <input id="age" type="number" ref={ageInputeRef} />
           <Button type="submit">Add User</Button>
         </form>
       </Card>
-    </div>
+    </Fragment>
   );
 };
+
 export default AddUser;
